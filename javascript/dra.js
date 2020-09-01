@@ -1,7 +1,7 @@
 /*
 camilo ortiz, 2020, camilodoa.ml
 
-reinforcement learning in the browser
+deep reinforcement learning in the browser
 
 dependencies:
 paper.js
@@ -16,7 +16,7 @@ window.onload = function() {
   // number of babies
   const n = 1;
   // color
-  const bodyColor = '#fdd8b5';
+  const bodyColor = '#FFB7B2';
   // goal
   let goal = new Point(view.center.x, view.center.y);
   // max world's inertia
@@ -117,9 +117,9 @@ window.onload = function() {
       this.outergate.matrix = new Matrix().translate(position)
     }
   });
-  const Ra = Base.extend({
+  const Dra = Base.extend({
     /*
-    Ra
+    Dra
      */
     initialize: function (position) {
       /*
@@ -439,7 +439,7 @@ window.onload = function() {
   // create babies
   const lunarBabies = [];
   for (let i = 0; i < n; i++) {
-    lunarBabies.push(new Ra(Point.random().multiply(view.size)));
+    lunarBabies.push(new Dra(Point.random().multiply(view.size)));
   }
   // make coveted goal
   const ideal = new CovetedLocation();
