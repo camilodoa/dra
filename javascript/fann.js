@@ -24,6 +24,7 @@ var fann = class {
     step = function(x) {
 
     }
+    // Activations
     sigmoid = function(x) {
         /*
         Sigmoid activation for an array of elements
@@ -31,6 +32,7 @@ var fann = class {
         sigmoidFunction = function (t) {return 1 / (1 + Math.exp(-t))}
         return this.recursiveMap(x, sigmoidFunction);
     }
+    // Utility
     recursiveMap = function(arr, func) {
         // Base case 1
         if (arr.length === 0) return [];
@@ -43,9 +45,9 @@ var fann = class {
      randn = function(i, j) {
         // Initialize random matrix of shape [i, j]
         let arr = [];
-        for (let i = 0; i < 1; i ++) {
+        for (let first = 0; first < i; first++) {
             let nestedArr = []
-            for (let j = 0; j < this.numHidden; j++) {
+            for (let second = 0; second < j; second++) {
                 nestedArr.push(Math.random());
             }
             arr.push(nestedArr);
