@@ -3,7 +3,7 @@ Feedforward Artificial Neural Network
 */
 
 var FANN = class {
-    constructor(regularizationLambda = 0.005, alpha = 0.001) {
+    constructor(position, regularizationLambda = 0.005, alpha = 0.001, sight = 1000) {
         /*
         Input shape is an array with a single number
         This network has one hidden layer
@@ -13,7 +13,7 @@ var FANN = class {
        let c = document.getElementById('space')
        let canvas = c.getContext('2d');
        // 1D array of pixel values
-       let inputPixels = canvas.getImageData(0, 0, c.width, c.height).data;
+       let inputPixels = canvas.getImageData(position.x - sight, position.y - sight, position.x + sight, position.y + sight).data;
        this.inputShape = [32, inputPixels.length]; // Raw pixels (batch size, number of pixels)
        this.outputShape = [1, 1]; // Reward
        // Number of hidden neurons
@@ -29,7 +29,6 @@ var FANN = class {
        this.alpha = alpha;
        // Input accumulation for batch learning
        this.batch = [];
-       console.log('in constructor');
     }
     step = function(input, reward) {
         // Step forward in time
