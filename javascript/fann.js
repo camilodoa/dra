@@ -14,7 +14,7 @@ var FANN = class {
        let canvas = c.getContext('2d');
        // 1D array of pixel values
        let inputPixels = canvas.getImageData(0, 0, c.width, c.height).data;
-       this.inputShape = [1, inputPixels.length]; // Raw pixels (batch size, number of pixels)
+       this.inputShape = [32, inputPixels.length]; // Raw pixels (batch size, number of pixels)
        this.outputShape = [1, 1]; // Reward
        // Number of hidden neurons
        this.numHidden = 10;
@@ -30,26 +30,72 @@ var FANN = class {
        // Input accumulation for batch learning
        this.batch = [];
     }
-    addObservable = function(input, reward) {
+    step = function(input, reward) {
+        // Step forward in time
         // Collect observables into a batch of inputs
         // When batch is filled, update network weights
         if (batch.length > 32) {
-            this.update();
-            batch = [[input, reward]];
+            this.train();
+            batch = [[input, [reward]]];
         } else {
-            batch.push([input, reward]);
+            batch.push([input, [reward]]);
         }
     }
-    update = function() {
+    train = function() {
         // Use accumulated batch of inputs to train the network
+        this.batch.forEach(input => {
+            let x = input[0];
+            let y = input[1];
+            // Feedforward pass
+            let a1 = x;
+            let a2 = this.sigmoid(this.recursiveSumUp(this.dot(x, this.w1), this.b1));
+            let a3 = this.sigmoid(this.recursiveSumUp(this.dot(a1, this.w2), this.b2));
+            // Backprop
+            // (out - y) * a3 (1 - a3)
+            let delta3 = this.recursiveMultiplication(this.recursiveSubtraction(a3, y), this.recursiveMultiplication(a3, this.recursiveMap(a3, x => 1 - x)));
+            // (delta3 dot w2.T) * a2 (1 - a2)
+            let delta2 = this.recursiveMultiplication(this.dot(delta3, this.w2), this.recursiveMultiplication(a2, this.recursiveMap(a2, x => 1 - x)));
+            // Delta weights
+            let deltaW2 = this.dot(a2, delta3);
+            let deltaB2 = a3;
+            let deltaW1 = this.dot(a1, delta2);
+            let deltaB1 = delta2;
+            // Update
+            let m = x.length;
+            // w1 += -alpha * ((1 / m * deltaW1) + regularizationLambda * w1)
+            this.w1 = this.recursiveSum(self.w1, this.recursiveMap(
+                this.recursiveSum(
+                    this.recursiveMap(deltaW1, x => (1 / m) * x), 
+                    this.recursiveMap(this.w1, x => x * this.regularizationLambda)
+                ), x => x * - this.alpha
+            ));
+            // b1 += - alpha * (1 / m * deltaB1)
+            this.b1 = this.recursiveSum(self.b1, this.recursiveMap(
+                this.recursiveMap(deltaB1, x => (1 / m) * x),
+                x => x * - this.alpha
+            ));
+            // w2 += -alpha * ((1 / m * deltaW2) + regularizationLambda * w2)
+            this.w2 = this.recursiveSum(self.w2, this.recursiveMap(
+                this.recursiveSum(
+                    this.recursiveMap(deltaW2, x => (1 / m) * x), 
+                    this.recursiveMap(this.w2, x => x * this.regularizationLambda)
+                ), x => x * - this.alpha
+            ));
+            // b2 += -alpha * (1 / m * deltaB2)
+            this.b2 = this.recursiveSum(self.b2, this.recursiveMap(
+                this.recursiveMap(deltaB2, x => (1 / m) * x),
+                x => x * - this.alpha
+            ));
+            console.log(this.cost(this.predict(x), y))
+        }) 
     }
     predict = function(x) {
         // Predict the reward of state x
         // Add the dot product of the input and the first weight layer and the bias term
         // Take the sigmoid of that
-        let z1 = this.sigmoid(this.recursiveSum(this.dot(x, this.w1), this.b1));
+        let z1 = this.sigmoid(this.recursiveSumUp(this.dot(x, this.w1), this.b1));
         // Repeat
-        let z2 = this.sigmoid(this.recursiveSum(this.dot(z1, this.w2), this.b2));
+        let z2 = this.sigmoid(this.recursiveSumUp(this.dot(z1, this.w2), this.b2));
         return z2;
     }
     cost = function(out, y) {
@@ -58,14 +104,14 @@ var FANN = class {
         // L2 regularization
         // Square all the weights in each layer and sum them up
         // This step works to reduce overfitting by reducing weights
-        let squaredSumW1 = this.recursiveSum(this.recursiveMap(this.w1, x => Math.pow(x, 2)))[0];
-        let squaredSumW2 = this.recursiveSum(this.recursiveMap(this.w2, x => Math.pow(x, 2)))[0];
+        let squaredSumW1 = this.recursiveSumUp(this.recursiveMap(this.w1, x => Math.pow(x, 2)))[0];
+        let squaredSumW2 = this.recursiveSumUp(this.recursiveMap(this.w2, x => Math.pow(x, 2)))[0];
         cost += this.regularizationLambda *  (squaredSumW1 + squaredSumW2);
         return cost;
     }
     mse = function(out, y) {
         // Mean of the squared difference of predicted and actual
-        let sum = this.recursiveSum(this.recursiveMap(this.recursiveSubtraction(out, y), x => Math.pow(x, 2)));
+        let sum = this.recursiveSumUp(this.recursiveMap(this.recursiveSubtraction(out, y), x => Math.pow(x, 2)));
         // Corner case
         if (sum[1] === 0) return 0;
         return sum[0] / sum[1];
@@ -99,7 +145,19 @@ var FANN = class {
         }
         return arr1.map((e, i) => this.recursiveSubtraction(e, arr2[i]));
     }
-    recursiveMult = function(arr1, arr2) {
+    recursiveSum = function(arr1, arr2) {
+        // Recursively sums two arrays, making a new array of the same shape
+        // Base cases
+        // if either array is empty
+        if (arr1.length === 0  || arr2.length === 0) return [];
+        // if there are no more nested arrays
+        if (arr1.length > 0 && !Array.isArray(arr1[0]) && arr2.length > 0 && !Array.isArray(arr2[0])) {
+            // Element wise subtraction
+            return arr1.map((e, i) => e + arr2[i]);
+        }
+        return arr1.map((e, i) => this.recursiveSubtraction(e, arr2[i]));
+    }
+    recursiveMultiplication = function(arr1, arr2) {
         // Recursively multiplies two arrays
         // Base cases
         // if either array is empty
@@ -109,16 +167,16 @@ var FANN = class {
             // Element wise subtraction
             return arr1.map((e, i) => e * arr2[i]);
         }
-        return arr1.map((e, i) => this.recursiveMult(e, arr2[i]));
+        return arr1.map((e, i) => this.recursiveMultiplication(e, arr2[i]));
     }
-    recursiveSum = function(arr) {
+    recursiveSumUp = function(arr) {
         // Returns array of total sum, and number of elements
         // Base cases
         if (arr.length === 0) return [0, 0];
         if (arr.length > 0 && !Array.isArray(arr[0])) return [arr.reduce((acc, e) => acc + e), arr.length];
         let ret = [0, 0];
         arr.forEach(e => {
-            let values = this.recursiveSum(e);
+            let values = this.recursiveSumUp(e);
             ret[0] += values[0];
             ret[1] += values[1];
         });
