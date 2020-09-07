@@ -3,7 +3,7 @@ Feedforward Artificial Neural Network
 */
 
 var FANN = class {
-    constructor(regLambda = 0.005) {
+    constructor(regularizationLambda = 0.005, alpha = 0.001) {
         /*
         Input shape is an array with a single number
         This network has one hidden layer
@@ -25,10 +25,32 @@ var FANN = class {
        this.w2 = this.recursiveMap(this.randn(this.outputShape[1], this.numHidden), x => x / Math.sqrt(this.numHidden));
        this.b2 = this.randn(this.outputShape[1], 1);
        // Parameters
-       this.regularizationLambda = regLambda;
+       this.regularizationLambda = regularizationLambda;
+       this.alpha = alpha;
+       // Input accumulation for batch learning
+       this.batch = [];
+    }
+    addObservable = function(input, reward) {
+        // Collect observables into a batch of inputs
+        // When batch is filled, update network weights
+        if (batch.length > 32) {
+            this.update();
+            batch = [[input, reward]];
+        } else {
+            batch.push([input, reward]);
+        }
+    }
+    update = function() {
+        // Use accumulated batch of inputs to train the network
     }
     predict = function(x) {
-        
+        // Predict the reward of state x
+        // Add the dot product of the input and the first weight layer and the bias term
+        // Take the sigmoid of that
+        let z1 = this.sigmoid(this.recursiveSum(this.dot(x, this.w1), this.b1));
+        // Repeat
+        let z2 = this.sigmoid(this.recursiveSum(this.dot(z1, this.w2), this.b2));
+        return z2;
     }
     cost = function(out, y) {
         // MSE
@@ -103,6 +125,9 @@ var FANN = class {
         return ret;
     }
     dot = function(arr1, arr2) {
+        // Dot product of 2 arrays
+        // Only works if one array is 2D and the other is 1D
+        // Probably should be fixed
         let larger = Array.isArray(arr1[0]) ? arr1 : arr2;
         let smaller = Array.isArray(arr1[0]) ? arr2 : arr1;
         console.log(larger);
@@ -145,7 +170,7 @@ var FANN = class {
 }
 
 let network = new FANN();
-console.log(network.w1);
+console.log(network.b2);
 // dot product test
 let c = document.getElementById('space')
 let canvas = c.getContext('2d');
