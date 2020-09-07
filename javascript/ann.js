@@ -2,7 +2,7 @@
 Feedforward Artificial Neural Network
 */
 
-var ANN = class {
+var ann = class {
     constructor(regularizationLambda = 0.005, alpha = 0.001, sight = 1000) {
         /*
         Input shape is an array with a single number
