@@ -29,6 +29,7 @@ var FANN = class {
        this.alpha = alpha;
        // Input accumulation for batch learning
        this.batch = [];
+       console.log('in constructor');
     }
     step = function(input, reward) {
         // Step forward in time
@@ -226,14 +227,3 @@ var FANN = class {
         return arr;
     }
 }
-
-let network = new FANN();
-console.log(network.b2);
-// dot product test
-let c = document.getElementById('space')
-let canvas = c.getContext('2d');
-// 1D array of pixel values
-let inputPixels = canvas.getImageData(0, 0, c.width, c.height).data;
-let z1 = network.dot(canvas.getImageData(0, 0, c.width, c.height).data, network.w1);
-console.log(z1);
-console.log(network.dot(z1, network.w2));

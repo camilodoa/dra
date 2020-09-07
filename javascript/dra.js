@@ -159,6 +159,8 @@ window.onload = function() {
         this.goUp,
         this.goLeft
       ];
+      // deep learning 
+      this.network = new FANN();      
       // q-learning
       this.epsilon = 0.2;
       this.discount = 0.8;
