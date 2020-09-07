@@ -14,15 +14,15 @@ var FANN = class {
        let canvas = c.getContext('2d');
        // 1D array of pixel values
        let inputPixels = canvas.getImageData(0, 0, c.width, c.height).data;
-       this.inputShape = [inputPixels.length, 1]; // Raw pixels
+       this.inputShape = [1, inputPixels.length]; // Raw pixels (batch size, number of pixels)
        this.outputShape = [1, 1]; // Reward
        // Number of hidden neurons
        this.numHidden = 10;
        // First layer's outgoing weights and biases
-       this.w1 = this.recursiveMap(this.randn(this.inputShape[1], this.numHidden), x => x / Math.sqrt(this.inputShape[1]));
+       this.w1 = this.recursiveMap(this.randn(this.numHidden, this.inputShape[1]), x => x / Math.sqrt(this.inputShape[1]));
        this.b1 = this.randn(this.numHidden, 1);
        // Second layer's outgoing weights and biases
-       this.w2 = this.recursiveMap(this.randn(this.numHidden, this.outputShape[1]), x => x / Math.sqrt(this.numHidden));
+       this.w2 = this.recursiveMap(this.randn(this.outputShape[1], this.numHidden), x => x / Math.sqrt(this.numHidden));
        this.b2 = this.randn(this.outputShape[1], 1);
        // Parameters
        this.regularizationLambda = regLambda;
@@ -103,9 +103,22 @@ var FANN = class {
         return ret;
     }
     dot = function(arr1, arr2) {
-        // THIS DOESNT WORK FOR 1D input
+        let larger = Array.isArray(arr1[0]) ? arr1 : arr2;
+        let smaller = Array.isArray(arr1[0]) ? arr2 : arr1;
+        console.log(larger);
+        console.log(smaller);
+
+        let result = []
+        for (let i = 0; i < larger.length; i ++) {
+            // Multiply each value in the element array of the larger matrix by the element in the smaller one
+            let currSum = larger[i].reduce((acc, curr, i) => acc + (curr * smaller[i]));
+            result.push(currSum);
+        }
+        console.log(result)
+        return result;
+        
         // Dot product
-        return this.recursiveSum(this.recursiveMult(arr1, arr2))[0];
+        // return this.recursiveSum(this.recursiveMult(arr1, arr2))[0];
     }
     transpose = function(mat) {
         // Transpose matrix
@@ -142,5 +155,6 @@ let c = document.getElementById('space')
 let canvas = c.getContext('2d');
 // 1D array of pixel values
 let inputPixels = canvas.getImageData(0, 0, c.width, c.height).data;
-console.log(network.dot(canvas.getImageData(0, 0, c.width, c.height).data, network.w1));
-console.log(network.w1, network.w2);
+let z1 = network.dot(canvas.getImageData(0, 0, c.width, c.height).data, network.w1);
+console.log(z1);
+console.log(network.dot(z1, network.w2));
