@@ -3,7 +3,7 @@ Feedforward Artificial Neural Network
 */
 
 var FANN = class {
-    constructor(position, regularizationLambda = 0.005, alpha = 0.001, sight = 1000) {
+    constructor(position, regularizationLambda = 0.005, alpha = 0.001, sight = 250) {
         /*
         Input shape is an array with a single number
         This network has one hidden layer
@@ -14,6 +14,7 @@ var FANN = class {
        let canvas = c.getContext('2d');
        // 1D array of pixel values
        let inputPixels = canvas.getImageData(position.x - sight, position.y - sight, position.x + sight, position.y + sight).data;
+       console.log(inputPixels)
        this.inputShape = [32, inputPixels.length]; // Raw pixels (batch size, number of pixels)
        this.outputShape = [1, 1]; // Reward
        // Number of hidden neurons
