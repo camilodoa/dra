@@ -114,11 +114,7 @@ var FANN = class {
             let currSum = larger[i].reduce((acc, curr, i) => acc + (curr * smaller[i]));
             result.push(currSum);
         }
-        console.log(result)
         return result;
-        
-        // Dot product
-        // return this.recursiveSum(this.recursiveMult(arr1, arr2))[0];
     }
     transpose = function(mat) {
         // Transpose matrix
