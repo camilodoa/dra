@@ -160,7 +160,7 @@ window.onload = function() {
         this.goLeft
       ];
       // deep learning 
-      this.network = new FANN(position);      
+      this.network = new ANN();      
       // q-learning
       this.epsilon = 0.2;
       this.discount = 0.8;

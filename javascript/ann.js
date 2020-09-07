@@ -2,8 +2,8 @@
 Feedforward Artificial Neural Network
 */
 
-var FANN = class {
-    constructor(position, regularizationLambda = 0.005, alpha = 0.001, sight = 100) {
+var ANN = class {
+    constructor(regularizationLambda = 0.005, alpha = 0.001, sight = 1000) {
         /*
         Input shape is an array with a single number
         This network has one hidden layer
