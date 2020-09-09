@@ -16,7 +16,7 @@ window.onload = function() {
   // number of babies
   const n = 1;
   // color
-  const bodyColor = '#FFB7B2';
+  const bodyColor = '#ffb7b2';
   // goal
   let goal = new Point(view.center.x, view.center.y);
   // max world's inertia
