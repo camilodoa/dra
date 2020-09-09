@@ -10,21 +10,15 @@ var ann = class {
         Output shape is an array of 4 classes
         */
        // I/O shapes
-       let c = document.getElementById('space')
-       let canvas = c.getContext('2d');
-       // 1D array of pixel values
-    //    let inputPixels = canvas.getImageData(position.x - sight, position.y - sight, position.x + sight, position.y + sight).data;
-       let inputPixels = canvas.getImageData(0, 0, c.clientWidth, c.clientHeight);
-       console.log(inputPixels)
-       this.inputShape = [32, inputPixels.length]; // Raw pixels (batch size, number of pixels)
+       this.inputShape = [32, 1]; // Only take in distance to goal
        this.outputShape = [1, 1]; // Reward
        // Number of hidden neurons
        this.numHidden = 10;
        // First layer's outgoing weights and biases
-       this.w1 = this.recursiveMap(this.randn(this.numHidden, this.inputShape[1]), x => x / Math.sqrt(this.inputShape[1]));
+       this.w1 = this.recursiveMap(this.randn(this.inputShape[1], this.numHidden), x => x / Math.sqrt(this.inputShape[1]));
        this.b1 = this.randn(this.numHidden, 1);
        // Second layer's outgoing weights and biases
-       this.w2 = this.recursiveMap(this.randn(this.outputShape[1], this.numHidden), x => x / Math.sqrt(this.numHidden));
+       this.w2 = this.recursiveMap(this.randn(this.numHidden, this.outputShape[1]), x => x / Math.sqrt(this.numHidden));
        this.b2 = this.randn(this.outputShape[1], 1);
        // Parameters
        this.regularizationLambda = regularizationLambda;
@@ -88,7 +82,6 @@ var ann = class {
                 this.recursiveMap(deltaB2, x => (1 / m) * x),
                 x => x * - this.alpha
             ));
-            console.log(this.cost(this.predict(x), y))
         }) 
     }
     predict = function(x) {
@@ -121,8 +114,7 @@ var ann = class {
     // Activations
     sigmoid = function(x) {
         // Sigmoid activation for an array of elements
-        sigmoidFunction = function (t) {return 1 / (1 + Math.exp(-t))};
-        return this.recursiveMap(x, sigmoidFunction);
+        return this.recursiveMap(x, t => 1 / (1 + Math.exp(-t)));
     }
     // Utility
     recursiveMap = function(arr, func) {
@@ -190,8 +182,6 @@ var ann = class {
         // Probably should be fixed
         let larger = Array.isArray(arr1[0]) ? arr1 : arr2;
         let smaller = Array.isArray(arr1[0]) ? arr2 : arr1;
-        console.log(larger);
-        console.log(smaller);
 
         let result = []
         for (let i = 0; i < larger.length; i ++) {
@@ -228,3 +218,7 @@ var ann = class {
         return arr;
     }
 }
+
+let network = new ann();
+let prediction = network.predict(10);
+console.log(prediction);
