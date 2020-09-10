@@ -1,6 +1,6 @@
 # Deep Reinforcement Learning Agent [(Dra)](https://camilodoa.ml/dra)
 
-![image](image.png)
+![image](img/image.png)
 
 Dra is a deep reinforcement learning agent that exists in your browser. The reward at every time
 step is negatively correlated with Dra's distance to the goal. The training network is making 
