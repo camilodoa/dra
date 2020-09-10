@@ -3,21 +3,21 @@ Feedforward Artificial Neural Network
 */
 
 var ann = class {
-    constructor(regularizationLambda = 0.005, alpha = 0.001, sight = 1000) {
+    constructor(regularizationLambda = 0.005, alpha = 0.001) {
         /*
         Input shape is an array with a single number
         This network has one hidden layer
-        Output shape is an array of 4 classes
+        Output shape is an array of a single class
         */
        // I/O shapes
        this.inputShape = [32, 1]; // Only take in distance to goal
        this.outputShape = [1, 1]; // Reward
        // Number of hidden neurons
        this.numHidden = 10;
-       // First layer's outgoing weights and biases
+       // First layer's incoming weights and biases
        this.w1 = this.recursiveMap(this.randn(this.inputShape[1], this.numHidden), x => x / Math.sqrt(this.inputShape[1]));
        this.b1 = this.randn(this.numHidden, 1);
-       // Second layer's outgoing weights and biases
+       // First layer's outgoing weights and biases
        this.w2 = this.recursiveMap(this.randn(this.numHidden, this.outputShape[1]), x => x / Math.sqrt(this.numHidden));
        this.b2 = this.randn(this.outputShape[1], 1);
        // Parameters
@@ -220,5 +220,5 @@ var ann = class {
 }
 
 let network = new ann();
-let prediction = network.predict(10);
+let prediction = network.predict([10]);
 console.log(prediction);
