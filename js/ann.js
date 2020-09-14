@@ -1,5 +1,8 @@
 /*
-Feedforward Artificial Neural Network
+camilo ortiz, 2020, camilodoa.ml
+feedforward artificial neural network
+dependencies:
+math.js
 */
 
 var ann = class {
