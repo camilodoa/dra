@@ -10,21 +10,22 @@ var ann = class {
         Output shape is an array of a single class
         */
        // I/O shapes
-       this.inputShape = [32, 1]; // Only take in distance to goal
+       this.inputShape = [1, 1]; // Only take in distance to goal
        this.outputShape = [1, 1]; // Reward
        // Number of hidden neurons
        this.numHidden = 10;
        // First layer's incoming weights and biases
-       this.w1 = this.recursiveMap(this.randn(this.inputShape[1], this.numHidden), x => x / Math.sqrt(this.inputShape[1]));
-       this.b1 = this.randn(this.numHidden, 1);
+       this.w1 = math.map(math.zeros(this.inputShape[1], this.numHidden), x => Math.random() / Math.sqrt(this.inputShape[1]));
+       this.b1 = math.map(math.zeros(this.numHidden, 1), x => Math.random());
        // First layer's outgoing weights and biases
-       this.w2 = this.recursiveMap(this.randn(this.numHidden, this.outputShape[1]), x => x / Math.sqrt(this.numHidden));
-       this.b2 = this.randn(this.outputShape[1], 1);
+       this.w2 = math.map(math.zeros(this.numHidden, this.outputShape[1]), x => Math.random() / Math.sqrt(this.numHidden));
+       this.b2 = math.map(math.zeros(this.outputShape[1], 1), x => Math.random());
        // Parameters
        this.regularizationLambda = regularizationLambda;
        this.alpha = alpha;
        // Input accumulation for batch learning
        this.batch = [];
+       this.loss = 0;
     }
     step = function(input, reward) {
         // Step forward in time
@@ -32,193 +33,81 @@ var ann = class {
         // When batch is filled, update network weights
         if (batch.length > 32) {
             this.train();
-            batch = [[input, [reward]]];
+            batch = [[[input], [reward]]];
         } else {
-            batch.push([input, [reward]]);
+            batch.push([[input], [reward]]);
         }
     }
     train = function() {
         // Use accumulated batch of inputs to train the network
         this.batch.forEach(input => {
-            let x = input[0];
-            let y = input[1];
+            let x = math.reshape(math.matrix(input[0]), this.inputShape);
+            let y = math.reshape(math.matrix(input[1]), this.outputShape);
             // Feedforward pass
             let a1 = x;
-            let a2 = this.sigmoid(this.recursiveSumUp(this.dot(x, this.w1), this.b1));
-            let a3 = this.sigmoid(this.recursiveSumUp(this.dot(a1, this.w2), this.b2));
+            let a2 = math.map(math.add(math.multiply(a1, this.w1), math.transpose(this.b1)), t => 1 / (1 + Math.exp(-t)));
+            let a3 = math.map(math.add(math.multiply(a2, this.w2), math.transpose(this.b2)), t => 1 / (1 + Math.exp(-t)));
             // Backprop
-            // (out - y) * a3 (1 - a3)
-            let delta3 = this.recursiveMultiplication(this.recursiveSubtraction(a3, y), this.recursiveMultiplication(a3, this.recursiveMap(a3, x => 1 - x)));
+            // (a3 - y) * a3 (1 - a3)
+            let delta3 = math.dotMultiply(math.subtract(a3, y), math.map(a3, x => x * (1 - x)));
             // (delta3 dot w2.T) * a2 (1 - a2)
-            let delta2 = this.recursiveMultiplication(this.dot(delta3, this.w2), this.recursiveMultiplication(a2, this.recursiveMap(a2, x => 1 - x)));
+            let delta2 = math.dotMultiply(math.multiply(delta3, math.transpose(this.w2)), math.map(a2, x => x * (1- x)));
             // Delta weights
-            let deltaW2 = this.dot(a2, delta3);
+            let deltaW2 = math.multiply(math.transpose(a2), delta3);
+            // let deltaW2 = this.dot(a2, delta3);
             let deltaB2 = a3;
-            let deltaW1 = this.dot(a1, delta2);
+            // let deltaB2 = a3;
+            let deltaW1 = math.multiply(math.transpose(a1), delta2);
+            // let deltaW1 = this.dot(a1, delta2);
             let deltaB1 = delta2;
             // Update
-            let m = x.length;
+            let m = x._size[0];
             // w1 += -alpha * ((1 / m * deltaW1) + regularizationLambda * w1)
-            this.w1 = this.recursiveSum(self.w1, this.recursiveMap(
-                this.recursiveSum(
-                    this.recursiveMap(deltaW1, x => (1 / m) * x), 
-                    this.recursiveMap(this.w1, x => x * this.regularizationLambda)
-                ), x => x * - this.alpha
-            ));
+            this.w1 = math.add(this.w1, 
+                math.add(
+                    math.multiply(-this.alpha, math.multiply(1 / m, deltaW1)),
+                    math.multiply(this.regularizationLambda, this.w1)
+                )
+            );
             // b1 += - alpha * (1 / m * deltaB1)
-            this.b1 = this.recursiveSum(self.b1, this.recursiveMap(
-                this.recursiveMap(deltaB1, x => (1 / m) * x),
-                x => x * - this.alpha
-            ));
+            this.b1 = math.add(this.b1, math.multiply(-this.alpha, math.multiply(1 / m, math.transpose(deltaB1))));
             // w2 += -alpha * ((1 / m * deltaW2) + regularizationLambda * w2)
-            this.w2 = this.recursiveSum(self.w2, this.recursiveMap(
-                this.recursiveSum(
-                    this.recursiveMap(deltaW2, x => (1 / m) * x), 
-                    this.recursiveMap(this.w2, x => x * this.regularizationLambda)
-                ), x => x * - this.alpha
-            ));
+            this.w2 = math.add(this.w2, 
+                math.add(
+                    math.multiply(-this.alpha, math.multiply(1 / m, deltaW2)),
+                    math.multiply(this.regularizationLambda, this.w2)
+                )
+            );
             // b2 += -alpha * (1 / m * deltaB2)
-            this.b2 = this.recursiveSum(self.b2, this.recursiveMap(
-                this.recursiveMap(deltaB2, x => (1 / m) * x),
-                x => x * - this.alpha
-            ));
-        }) 
+            this.b2 = math.add(this.b2, math.multiply(-this.alpha, math.multiply(1 / m, math.transpose(deltaB2))));
+            this.loss = this.cost(a3, y);
+        }); 
+        return this.loss;
     }
     predict = function(x) {
         // Predict the reward of state x
         // Add the dot product of the input and the first weight layer and the bias term
         // Take the sigmoid of that
-        let z1 = this.sigmoid(this.recursiveSumUp(this.dot(x, this.w1), this.b1));
+        x = math.reshape(math.matrix(x), this.inputShape)
+        let z1 = math.map(math.add(math.multiply(x, this.w1), math.transpose(this.b1)), t => 1 / (1 + Math.exp(-t)));
         // Repeat
-        let z2 = this.sigmoid(this.recursiveSumUp(this.dot(z1, this.w2), this.b2));
+        let z2 = math.map(math.add(math.multiply(z1, this.w2), math.transpose(this.b2)), t => 1 / (1 + Math.exp(-t)));
         return z2;
     }
     cost = function(out, y) {
         // MSE
-        let cost = this.mse(out, y);
+        let loss = math.mean(math.square(math.subtract(out, y)));
         // L2 regularization
         // Square all the weights in each layer and sum them up
         // This step works to reduce overfitting by reducing weights
-        let squaredSumW1 = this.recursiveSumUp(this.recursiveMap(this.w1, x => Math.pow(x, 2)))[0];
-        let squaredSumW2 = this.recursiveSumUp(this.recursiveMap(this.w2, x => Math.pow(x, 2)))[0];
-        cost += this.regularizationLambda *  (squaredSumW1 + squaredSumW2);
-        return cost;
-    }
-    mse = function(out, y) {
-        // Mean of the squared difference of predicted and actual
-        let sum = this.recursiveSumUp(this.recursiveMap(this.recursiveSubtraction(out, y), x => Math.pow(x, 2)));
-        // Corner case
-        if (sum[1] === 0) return 0;
-        return sum[0] / sum[1];
-    }
-    // Activations
-    sigmoid = function(x) {
-        // Sigmoid activation for an array of elements
-        return this.recursiveMap(x, t => 1 / (1 + Math.exp(-t)));
-    }
-    // Utility
-    recursiveMap = function(arr, func) {
-        // Map, but it's safe for nested arrays
-        // Base case 1
-        if (arr.length === 0) return [];
-        // Base case 2
-        // If the array isn't holding more nested arrays, map normally
-        if (arr.length > 0 && !Array.isArray(arr[0])) return arr.map(func);
-        // Otherwise, recursively map nested arrays
-        return arr.map(x => this.recursiveMap(x, func));
-    }
-    recursiveSubtraction = function(arr1, arr2) {
-        // Recursively subtracts two arrays
-        // Base cases
-        // if either array is empty
-        if (arr1.length === 0  || arr2.length === 0) return [];
-        // if there are no more nested arrays
-        if (arr1.length > 0 && !Array.isArray(arr1[0]) && arr2.length > 0 && !Array.isArray(arr2[0])) {
-            // Element wise subtraction
-            return arr1.map((e, i) => e - arr2[i]);
-        }
-        return arr1.map((e, i) => this.recursiveSubtraction(e, arr2[i]));
-    }
-    recursiveSum = function(arr1, arr2) {
-        // Recursively sums two arrays, making a new array of the same shape
-        // Base cases
-        // if either array is empty
-        if (arr1.length === 0  || arr2.length === 0) return [];
-        // if there are no more nested arrays
-        if (arr1.length > 0 && !Array.isArray(arr1[0]) && arr2.length > 0 && !Array.isArray(arr2[0])) {
-            // Element wise subtraction
-            return arr1.map((e, i) => e + arr2[i]);
-        }
-        return arr1.map((e, i) => this.recursiveSubtraction(e, arr2[i]));
-    }
-    recursiveMultiplication = function(arr1, arr2) {
-        // Recursively multiplies two arrays
-        // Base cases
-        // if either array is empty
-        if (arr1.length === 0  || arr2.length === 0) return [];
-        // if there are no more nested arrays
-        if (arr1.length > 0 && !Array.isArray(arr1[0]) && arr2.length > 0 && !Array.isArray(arr2[0])) {
-            // Element wise subtraction
-            return arr1.map((e, i) => e * arr2[i]);
-        }
-        return arr1.map((e, i) => this.recursiveMultiplication(e, arr2[i]));
-    }
-    recursiveSumUp = function(arr) {
-        // Returns array of total sum, and number of elements
-        // Base cases
-        if (arr.length === 0) return [0, 0];
-        if (arr.length > 0 && !Array.isArray(arr[0])) return [arr.reduce((acc, e) => acc + e), arr.length];
-        let ret = [0, 0];
-        arr.forEach(e => {
-            let values = this.recursiveSumUp(e);
-            ret[0] += values[0];
-            ret[1] += values[1];
-        });
-        return ret;
-    }
-    dot = function(arr1, arr2) {
-        // Dot product of 2 arrays
-        // Only works if one array is 2D and the other is 1D
-        // Probably should be fixed
-        let larger = Array.isArray(arr1[0]) ? arr1 : arr2;
-        let smaller = Array.isArray(arr1[0]) ? arr2 : arr1;
-
-        let result = []
-        for (let i = 0; i < larger.length; i ++) {
-            // Multiply each value in the element array of the larger matrix by the element in the smaller one
-            let currSum = larger[i].reduce((acc, curr, i) => acc + (curr * smaller[i]));
-            result.push(currSum);
-        }
-        return result;
-    }
-    transpose = function(mat) {
-        // Transpose matrix
-        // Copy matrix
-        let arr = [...mat];
-        // Transpose 2D array
-        for (let i = 0; i < arr.length; i++) {
-            for (let j = 0; j < i; j++) {
-                const temp = arr[i][j];
-                arr[i][j] = arr[j][i];
-                arr[j][i] = temp;
-            }
-        }
-        return arr
-    }
-    randn = function(i, j) {
-        // Initialize random matrix of shape [i, j]
-        let arr = [];
-        for (let first = 0; first < i; first++) {
-            let nestedArr = []
-            for (let second = 0; second < j; second++) {
-                nestedArr.push(Math.random());
-            }
-            arr.push(nestedArr);
-        }
-        return arr;
+        loss += this.regularizationLambda * (math.sum(math.square(this.w1)) + math.sum(math.square(this.w2)));
+        return loss;
     }
 }
 
 let network = new ann();
 let prediction = network.predict([10]);
 console.log(prediction);
+network.batch = [[[10], [-10]]];
+let loss = network.train();
+console.log(loss);
