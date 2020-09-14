@@ -162,8 +162,9 @@ window.onload = function() {
       // deep learning   
       this.regularizationLambda = 0.005;
       this.alpha = 0.001;
+      this.numHidden = 10;
       this.batchSize = 1;
-      this.network = new ann(this.regularizationLambda, this.alpha, this.batchSize);
+      this.network = new ann(this.regularizationLambda, this.alpha, this.numHidden, this.batchSize);
     },
     /*
      deep learning

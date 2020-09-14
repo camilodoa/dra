@@ -3,7 +3,7 @@ Feedforward Artificial Neural Network
 */
 
 var ann = class {
-    constructor(regularizationLambda = 0.005, alpha = 0.001, batchSize = 32) {
+    constructor(regularizationLambda = 0.005, alpha = 0.001, numHidden = 10, batchSize = 32) {
         /*
         Input shape is an array with a single number
         This network has one hidden layer
@@ -13,7 +13,7 @@ var ann = class {
        this.inputShape = [1, 1]; // Only take in distance to goal
        this.outputShape = [1, 1]; // Reward
        // Number of hidden neurons
-       this.numHidden = 10;
+       this.numHidden = numHidden;
        // First layer's incoming weights and biases
        this.w1 = math.map(math.zeros(this.inputShape[1], this.numHidden), x => Math.random() / Math.sqrt(this.inputShape[1]));
        this.b1 = math.map(math.zeros(this.numHidden, 1), x => Math.random());
