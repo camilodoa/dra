@@ -159,79 +159,56 @@ window.onload = function() {
         this.goUp,
         this.goLeft
       ];
-      // deep learning 
-      this.network = new ann();      
-      // q-learning
-      this.epsilon = 0.2;
-      this.discount = 0.8;
-      this.alpha = 0.3;
-      this.weights = {};
+      // deep learning   
+      this.regularizationLambda = 0.005;
+      this.alpha = 0.001;
+      this.batchSize = 1;
+      this.network = new ann(this.regularizationLambda, this.alpha, this.batchSize);
     },
     /*
-     q-learning
+     deep learning
      */
     getFeatures: function (position, velocity, action) {
       /*
       returns features found in the successor of the current state
        */
-      const features = {};
-      // euclidean distance feature
-      features['euclidean'] = this.calculateSuccessor(position, velocity, action).subtract(goal).length / (view.size.height * view.size.width);
+      let features = [];
+      // euclidean distance
+      features.push(this.calculateSuccessor(position, velocity, action).subtract(goal).length / (view.size.height * view.size.width));
       return features;
     },
-    getQValue: function (position, velocity, action) {
+    getValue: function (position, velocity, action) {
       /*
-      returns q-value of state action pair
+      returns value of state action pair
        */
-      let value = 0;
       const features = this.getFeatures(position, velocity, action);
-      for (const feature in features) {
-        // safety for new weights
-        if (isNaN(this.weights[feature])) this.weights[feature] = 0.0;
-        // dot product of weights and features
-        value += this.weights[feature] * features[feature];
-      }
-      return value;
+      return math.sum(this.network.predict(features));
     },
-    computeValueFromQValues: function (position, velocity) {
+    computeValue: function (position, velocity) {
       /*
-      return q-value of the best action to take from current position
+      return value of the best action to take from current position
        */
       let value = 0;
       for (let i = 0; i < this.actions.length; i++) {
-        const possibleValue = this.getQValue(position, velocity, this.actions[i]);
+        const possibleValue = this.getValue(position, velocity, this.actions[i]);
         if (possibleValue > value) value = possibleValue;
       }
       return value;
     },
-    computeActionFromQValues: function (position, velocity) {
+    computeAction: function (position, velocity) {
       /*
       finds the best action to take based on current q-values
        */
       let value = -9999999999;
       let selected;
       for (let i = 0; i < this.actions.length; i++) {
-        const actionValue = this.getQValue(position, velocity, this.actions[i]);
+        const actionValue = this.getValue(position, velocity, this.actions[i]);
         if ( actionValue > value) {
           selected = this.actions[i];
           value = actionValue;
         }
       }
       return selected;
-    },
-    update: function (position, velocity, action, reward) {
-      /*
-      updates weights with the transition that was experienced
-       */
-      // successor state
-      const successorVelocity = action(position, velocity);
-      const successorPosition = this.calculateSuccessor(position, velocity, action);
-      // extract features
-      const features = this.getFeatures(position, velocity, action);
-      // calculate difference between expected  and actual transition
-      const difference = reward + this.discount * this.computeValueFromQValues(successorPosition, successorVelocity) - this.getQValue(position, velocity, action);
-      // perform the update step
-      for (const feature in features) this.weights[feature] = this.weights[feature] + this.alpha * difference * features[feature];
     },
     getReward: function (position, velocity, action) {
       /*
@@ -314,16 +291,12 @@ window.onload = function() {
       selects an action based on q values
       sometimes takes a random action
        */
-      let action;
-      if (Math.random() < this.epsilon) {
-        action = this.randomAction();
-      } else {
-        action = this.computeActionFromQValues(position, velocity);
-      }
-      // update weights
+      action = this.computeAction(position, velocity);
+      // add state to batch 
       const reward = this.getReward(position, velocity, action);
-      this.update(position, velocity, action, reward);
-      return action
+      this.network.step(this.getFeatures(position, velocity, action), reward);
+      // console.log(this.network.loss);
+      return action;
     },
     goDown: function (position, velocity) {
       /*

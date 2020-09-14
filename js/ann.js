@@ -3,7 +3,7 @@ Feedforward Artificial Neural Network
 */
 
 var ann = class {
-    constructor(regularizationLambda = 0.005, alpha = 0.001) {
+    constructor(regularizationLambda = 0.005, alpha = 0.001, batchSize = 32) {
         /*
         Input shape is an array with a single number
         This network has one hidden layer
@@ -23,6 +23,7 @@ var ann = class {
        // Parameters
        this.regularizationLambda = regularizationLambda;
        this.alpha = alpha;
+       this.batchSize = batchSize;
        // Input accumulation for batch learning
        this.batch = [];
        this.loss = 0;
@@ -31,11 +32,11 @@ var ann = class {
         // Step forward in time
         // Collect observables into a batch of inputs
         // When batch is filled, update network weights
-        if (batch.length > 32) {
+        if (this.batch.length > this.batchSize) {
             this.train();
-            batch = [[[input], [reward]]];
+            this.batch = [[[input], [reward]]];
         } else {
-            batch.push([[input], [reward]]);
+            this.batch.push([[input], [reward]]);
         }
     }
     train = function() {
@@ -104,10 +105,3 @@ var ann = class {
         return loss;
     }
 }
-
-let network = new ann();
-let prediction = network.predict([10]);
-console.log(prediction);
-network.batch = [[[10], [-10]]];
-let loss = network.train();
-console.log(loss);
