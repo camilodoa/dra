@@ -18,7 +18,7 @@ window.onload = function() {
   // color
   const bodyColor = '#ffb7b2';
   // goal
-  let goal = new Point(view.center.x, view.center.y);
+  var goal = new Point(view.center.x, view.center.y);
   // max world's inertia
   const inertia = 1.5;
   // goal's size
@@ -159,7 +159,7 @@ window.onload = function() {
         this.goUp,
         this.goLeft
       ];
-      // deep learning   
+      // deep learning
       this.regularizationLambda = 0.005;
       this.alpha = 0.001;
       this.numHidden = 10;
@@ -173,7 +173,7 @@ window.onload = function() {
       /*
       returns features found in the successor of the current state
        */
-      let features = [];
+      var features = [];
       // euclidean distance
       features.push(this.calculateSuccessor(position, velocity, action).subtract(goal).length / (view.size.height * view.size.width));
       return features;
@@ -189,8 +189,8 @@ window.onload = function() {
       /*
       return value of the best action to take from current position
        */
-      let value = 0;
-      for (let i = 0; i < this.actions.length; i++) {
+      var value = 0;
+      for (var i = 0; i < this.actions.length; i++) {
         const possibleValue = this.getValue(position, velocity, this.actions[i]);
         if (possibleValue > value) value = possibleValue;
       }
@@ -200,9 +200,9 @@ window.onload = function() {
       /*
       finds the best action to take based on current q-values
        */
-      let value = -9999999999;
-      let selected;
-      for (let i = 0; i < this.actions.length; i++) {
+      var value = -9999999999;
+      var selected;
+      for (var i = 0; i < this.actions.length; i++) {
         const actionValue = this.getValue(position, velocity, this.actions[i]);
         if ( actionValue > value) {
           selected = this.actions[i];
@@ -293,7 +293,7 @@ window.onload = function() {
       sometimes takes a random action
        */
       action = this.computeAction(position, velocity);
-      // add state to batch 
+      // add state to batch
       const reward = this.getReward(position, velocity, action);
       this.network.step(this.getFeatures(position, velocity, action), reward);
       // console.log(this.network.loss);
@@ -331,7 +331,7 @@ window.onload = function() {
       outComeVector.length = this.maxSpeed;
       const finalPosition = position.clone();
       // add velocity vector to position to get the final position
-      for (let i = 0; i < this.actionCount; i++) {
+      for (var i = 0; i < this.actionCount; i++) {
         finalPosition.x += outComeVector.x;
         finalPosition.y += outComeVector.y;
       }
@@ -341,7 +341,7 @@ window.onload = function() {
       /*
       float at a velocity that changes based on where the baby is in its action
        */
-      let dx = (toGaussian(this.movementCounter / this.actionCount) + 0.3) * this.vel.x,
+      var dx = (toGaussian(this.movementCounter / this.actionCount) + 0.3) * this.vel.x,
           dy =  (toGaussian(this.movementCounter / this.actionCount) + 0.3) * this.vel.y,
           x = this.loc.x += dx,
           y = this.loc.y += dy;
@@ -382,28 +382,28 @@ window.onload = function() {
   /*
   Utility functions
    */
-  let redirect = (position, velocity, degrees) => {
+  var redirect = (position, velocity, degrees) => {
     /*
     changes velocity according to the degree of movement and inertia
      */
     return new Point(Math.cos(toRadian(degrees)), Math.sin(toRadian(degrees))).add(velocity.clone().multiply(inertia));
   }
-  let toRadian = (angle) => {
+  var toRadian = (angle) => {
     /*
     translates degrees to radian
      */
     return (angle * Math.PI / 180 );
   }
-  let gaussianSample = () => {
+  var gaussianSample = () => {
     /*
     returns random number sampled from a gaussian from ~ -3 to 3
      */
-    let u = 0, v = 0;
+    var u = 0, v = 0;
     while(u === 0) u = Math.random();
     while(v === 0) v = Math.random();
     return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
   }
-  let toGaussian = (x, height = 1, mew = 0, sigma = 2.23) => {
+  var toGaussian = (x, height = 1, mew = 0, sigma = 2.23) => {
     /*
     maps input from 0-1 to 0-1 on a bell curve
      */
@@ -414,7 +414,7 @@ window.onload = function() {
    */
   // create babies
   const lunarBabies = [];
-  for (let i = 0; i < n; i++) {
+  for (var i = 0; i < n; i++) {
     lunarBabies.push(new Dra(Point.random().multiply(view.size)));
   }
   // make coveted goal
