@@ -18,11 +18,19 @@ var ann = class {
        // Number of hidden neurons
        this.numHidden = numHidden;
        // First layer's incoming weights and biases
-       this.w1 = math.map(math.zeros(this.inputShape[1], this.numHidden), x => Math.random() / Math.sqrt(this.inputShape[1]));
-       this.b1 = math.map(math.zeros(this.numHidden, 1), x => Math.random());
+       this.w1 = math.map(math.zeros(this.inputShape[1], this.numHidden), function(x) {
+           return Math.random() / Math.sqrt(this.inputShape[1]);
+       }.bind(this));
+       this.b1 = math.map(math.zeros(this.numHidden, 1), function(x) {
+           return Math.random();
+       });
        // First layer's outgoing weights and biases
-       this.w2 = math.map(math.zeros(this.numHidden, this.outputShape[1]), x => Math.random() / Math.sqrt(this.numHidden));
-       this.b2 = math.map(math.zeros(this.outputShape[1], 1), x => Math.random());
+       this.w2 = math.map(math.zeros(this.numHidden, this.outputShape[1]), function(x) {
+           return Math.random() / Math.sqrt(this.numHidden);
+       }.bind(this));
+       this.b2 = math.map(math.zeros(this.outputShape[1], 1), function(x) {
+           return Math.random();
+       });
        // Parameters
        this.regularizationLambda = regularizationLambda;
        this.alpha = alpha;
@@ -49,13 +57,17 @@ var ann = class {
             var y = math.reshape(math.matrix(input[1]), this.outputShape);
             // Feedforward pass
             var a1 = x;
-            var a2 = math.map(math.add(math.multiply(a1, this.w1), math.transpose(this.b1)), t => 1 / (1 + Math.exp(-t)));
-            var a3 = math.map(math.add(math.multiply(a2, this.w2), math.transpose(this.b2)), t => 1 / (1 + Math.exp(-t)));
+            var a2 = math.map(math.add(math.multiply(a1, this.w1), math.transpose(this.b1)), this.sigmoid);
+            var a3 = math.map(math.add(math.multiply(a2, this.w2), math.transpose(this.b2)), this.sigmoid);
             // Backprop
             // (a3 - y) * a3 (1 - a3)
-            var delta3 = math.dotMultiply(math.subtract(a3, y), math.map(a3, x => x * (1 - x)));
+            var delta3 = math.dotMultiply(math.subtract(a3, y), math.map(a3, function(x) {
+                return x * (1 - x);
+            }));
             // (delta3 dot w2.T) * a2 (1 - a2)
-            var delta2 = math.dotMultiply(math.multiply(delta3, math.transpose(this.w2)), math.map(a2, x => x * (1- x)));
+            var delta2 = math.dotMultiply(math.multiply(delta3, math.transpose(this.w2)), math.map(a2, function(x) {
+                return x * (1- x);
+            }));
             // Delta weights
             var deltaW2 = math.multiply(math.transpose(a2), delta3);
             var deltaB2 = a3;
@@ -90,9 +102,9 @@ var ann = class {
         // Add the dot product of the input and the first weight layer and the bias term
         // Take the sigmoid of that
         x = math.reshape(math.matrix(x), this.inputShape)
-        var z1 = math.map(math.add(math.multiply(x, this.w1), math.transpose(this.b1)), t => 1 / (1 + Math.exp(-t)));
+        var z1 = math.map(math.add(math.multiply(x, this.w1), math.transpose(this.b1)), this.sigmoid);
         // Repeat
-        var z2 = math.map(math.add(math.multiply(z1, this.w2), math.transpose(this.b2)), t => 1 / (1 + Math.exp(-t)));
+        var z2 = math.map(math.add(math.multiply(z1, this.w2), math.transpose(this.b2)), this.sigmoid);
         return z2;
     }
     cost = function(out, y) {
@@ -103,5 +115,8 @@ var ann = class {
         // This step works to reduce overfitting by reducing weights
         loss += this.regularizationLambda * (math.sum(math.square(this.w1)) + math.sum(math.square(this.w2)));
         return loss;
+    }
+    sigmoid = function(t) {
+        return 1 / (1 + Math.exp(-t));
     }
 }

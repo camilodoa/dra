@@ -132,7 +132,7 @@ window.onload = function() {
       // action time length
       this.actionCount = this.ability + gaussianSample() * 2;
       // speed limit
-      this.maxSpeed = 0.5;
+      this.maxSpeed = 0.6;
       // body
       this.rightarm = rightArmSym.place();
       this.leftarm = leftArmSym.place();
