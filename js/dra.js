@@ -66,7 +66,7 @@ window.onload = function() {
   const eyeLidSym = new Symbol(eyeLid);
   // iris
   const iris = new Path.Oval([0, 0], [9, 9]);
-  iris.fillColor = '#77B5FE';
+  iris.fillColor = '#77b5fe';
   iris.strokeColor = null;
   const irisSym = new Symbol(iris);
   // pupil
