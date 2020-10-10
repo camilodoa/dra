@@ -38,11 +38,6 @@ a {
   right: 50px;
 }
 
-.title {
-  float: none;
-  position: absolute;
-}
-
 .source{
   float:right;
   position: absolute;
