@@ -1,11 +1,11 @@
 /*
 camilo ortiz, 2020, camilodoa.ml
-feedforward artificial neural network
+feed forward artificial neural network
 dependencies:
 math.js
 */
 
-var ann = class {
+var ffnn = class {
     constructor(regularizationLambda = 0.005, alpha = 0.001, numHidden = 10, batchSize = 32) {
         /*
         Input shape is an array with a single number

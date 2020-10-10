@@ -168,7 +168,7 @@ window.onload = function() {
       this.alpha = 0.001;
       this.numHidden = 10;
       this.batchSize = 1;
-      this.network = new ann(this.regularizationLambda, this.alpha, this.numHidden, this.batchSize);
+      this.network = new ffnn(this.regularizationLambda, this.alpha, this.numHidden, this.batchSize);
     },
     /*
      deep learning
