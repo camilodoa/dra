@@ -107,6 +107,9 @@ var ffnn = class {
         var z2 = math.map(math.add(math.multiply(z1, this.w2), math.transpose(this.b2)), this.sigmoid);
         return z2;
     }
+    see = function(x) {
+      space = document.getElementById("space").getContext("2d").getImageData();
+    }
     cost = function(out, y) {
         // MSE
         var loss = math.mean(math.square(math.subtract(out, y)));

@@ -4,7 +4,13 @@ html, body {
     margin: 0px;
 }
 
-canvas {
+a {
+  text-decoration: none;
+  color:  #0059a7;
+  font-family: 'Roboto', sans-serif;
+}
+
+.space {
     position: absolute;
     left: 0;
     top: 0;
@@ -14,13 +20,7 @@ canvas {
     background-color: #ffcfcc;
 }
 
-a {
-  text-decoration: none;
-  color:  #0059a7;
-  font-family: 'Roboto', sans-serif;
-}
-
-.footer {
+.footer, #footer {
   display: flex;
   flex-direction: row;
   position: fixed;
