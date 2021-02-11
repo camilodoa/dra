@@ -202,7 +202,7 @@ window.onload = function() {
     },
     computeAction: function (position, velocity) {
       /*
-      finds the best action to take based on current q-values
+      finds the best action to take based on network predicted reward
        */
       var value = -9999999999;
       var selected;
