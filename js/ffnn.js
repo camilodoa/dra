@@ -12,6 +12,10 @@ var ffnn = class {
         This network has one hidden layer
         Output shape is an array of a single class
         */
+       // canvas
+      this.canvas = document.getElementById('space');
+      this.ctx = this.canvas.getContext('2d');
+
        // I/O shapes
        this.inputShape = [1, 1]; // Only take in distance to goal
        this.outputShape = [1, 1]; // Reward
@@ -98,6 +102,10 @@ var ffnn = class {
         return this.loss;
     }
     predict = function(x) {
+        // var image = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height).data;
+        // image = math.reshape(math.matrix(Array.from(image)), [image.length / 4, 4])
+        // console.log(image)
+
         // Predict the reward of state x
         // Add the dot product of the input and the first weight layer and the bias term
         // Take the sigmoid of that
